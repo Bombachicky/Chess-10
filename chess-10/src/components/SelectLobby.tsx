@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import styled, { css } from 'styled-components';
 import { keyframes } from 'styled-components';
 import MainMenu from './MainMenu';
@@ -113,14 +114,14 @@ const SelectLobby = () => {
       <Body>
         <Figure>
           <Div>
-            <Span type="first">Hover Me</Span>
-            <Span type="second">Button</Span>
+            <Span type="first">Username</Span>
+            <Span type="second">Join Games</Span>
           </Div>
         </Figure>
       </Body>
 
-      <Button></Button>
-      <BackButton onClick={goBackToMainMenu}>Back to Menu</BackButton>  {/* Back button */}
+      <Button onClick={goBackToMainMenu}>Back to Menu</Button>
+      {/* <BackButton onClick={goBackToMainMenu}>Back to Menu</BackButton>  Back button */}
     </MainMenu>
   );
 };

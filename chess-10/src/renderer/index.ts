@@ -7,7 +7,7 @@ const BOARD_SIZE = 8;
 
 const sphereGeom = new SphereGeometry(0.5, 16, 8);
 
-const moveGeom = new BoxGeometry(SQUARE_SIZE * 0.8, 0.1, SQUARE_SIZE * 0.8);
+const moveGeom = new BoxGeometry(SQUARE_SIZE, 0.1, SQUARE_SIZE);
 
 const moveMaterial = new MeshStandardMaterial({
 	color: 0x00d000,
@@ -130,13 +130,13 @@ export class Renderer {
 		shockwave.position.set(point.x, point.y, point.z);
 		this.scene.add(shockwave);
 
-		// const sound = new PositionalAudio(this.listener);
-		// sound.setBuffer(loadAudioBuffer("sounds/explosion.ogg"));
-		// sound.setVolume(options.soundVolume);
-		// sound.setPlaybackRate(options.soundSpeed);
-		// sound.setRefDistance(20);
-		// sound.play();
-		// shockwave.add(sound);
+		const sound = new PositionalAudio(this.listener);
+		sound.setBuffer(loadAudioBuffer("explosion.ogg"));
+		sound.setVolume(options.soundVolume);
+		sound.setPlaybackRate(options.soundSpeed);
+		sound.setRefDistance(20);
+		sound.play();
+		shockwave.add(sound);
 
 		let shockwaveOpacity = options.shockwaveOpacity;
 
@@ -263,7 +263,7 @@ export class Renderer {
 			}
 		});
 
-		this.scene.background = new Color(0x78868a);
+		this.scene.background = new Color(0x333333);
 
 		this.sun = new DirectionalLight(0xffffff, 2);
 		this.sun.castShadow = true;
