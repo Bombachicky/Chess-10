@@ -87,21 +87,24 @@ class ChessController{
                 }
             }
             currPath = []
-            if(this.inBounds(diag1)){
-                //also diag1 needs to be on lastPath and the piece at the end of lastpath needs to be a pawn
-                //unless chess 10 is enabled
-                // or if it's a piece then we can just take it
-                let enPassant: boolean = false;
-                if(this.getPiece(diag1)!==" "){
-                    currPath.push(diag1);
-                    moveable.push({start:curr, end:diag1, path:currPath});
-                }
-            }
-            currPath = []
-            if(this.inBounds(diag2)){
-                if(this.getPiece(diag2)!==" "){
-                    currPath.push(diag2);
-                    moveable.push({start:curr, end:diag2, path:currPath});
+            let lastCell: Point = this.lastPath[this.lastPath.length-1];
+            let diags: Point[] = [diag1,diag2];
+            for (const diag of diags){
+                currPath = []
+                if(this.inBounds(diag)){
+                    //also diag needs to be on lastPath and the piece at the end of lastpath needs to be a pawn
+                    //unless chess 10 is enabled
+                    // or if it's a piece then we can just take it
+                    let intersect: boolean = false;
+                    for(const checkCell of this.lastPath){
+                        if(diag[0] === checkCell[0] && diag[1] === checkCell[1]){
+                            intersect = true;
+                        }
+                    }
+                    if(intersect && this.getPiece(lastCell).toLowerCase() === "p"){
+                        currPath.push(diag);
+                        moveable.push({start:curr, end:diag, path:currPath});
+                    }
                 }
             }
         }if(currPiece.toLowerCase() === "b" || currPiece.toLowerCase() === "q"){
