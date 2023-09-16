@@ -12,6 +12,7 @@ function copy2DArray(arr: string[][]): string[][] {
 }
 
 export class ChessController{
+    enableEnpassant: boolean
     board: string[][] = [
       ["r", "n", "b", "q", "k", "b", "n", "r"],
       ["p", "p", "p", "p", "p", "p", "p", "p"],
@@ -22,10 +23,19 @@ export class ChessController{
       ["P", "P", "P", "P", "P", "P", "P", "P"],
       ["R", "N", "B", "Q", "K", "B", "N", "R"],
     ];
+    constructor({ enableEnpassant }: {
+        enableEnpassant: boolean;
+    }){
+        this.enableEnpassant = enableEnpassant;
+    }
     // include the points along the path of the last move including the ending point
     lastPath: Point[] = [];
     getPiece(curr: Point) : string{
-        return this.board[curr[0]][curr[1]];
+        const result = this.board[curr[0]][curr[1]];
+        if (result === undefined) {
+            throw new Error(`${curr[0]}, ${curr[1]} is not valid`);
+        }
+        return result;
     }
     inBounds(curr: Point): boolean {
         return curr[0]>=0 && curr[1] >=0 && curr[0] < 8 && curr[1] < 8;
@@ -36,19 +46,28 @@ export class ChessController{
         return white;
     }
     sameTeam(us: Point, them: Point): boolean{
+        if(this.getPiece(us) === " " || this.getPiece(them) === " ")return false;
         return this.isWhite(us) === this.isWhite(them);
     }
     clone(): ChessController {
-        const result = new ChessController();
+        const result = new ChessController({
+            enableEnpassant: this.enableEnpassant,
+        });
         result.board = this.board.map(x => [...x]);
         result.lastPath = [...this.lastPath];
         return result;
     }
     getMoves(curr: Point): Move[] {
+        console.log(curr);
+        this.board.forEach(row => console.log(...row));
         return this.getMovesInternal(curr).filter(move => {
             const cloned = this.clone();
             cloned.executeMove(move);
-            return !cloned.inCheck(this.isWhite(curr));
+            console.log("MOVE TO", move.end, "IS...");
+            console.log("    check?", cloned.inCheck(this.isWhite(curr)));
+            console.log("    team kill?", this.isTeamKilling(move));
+            console.log("");
+            return (!cloned.inCheck(this.isWhite(curr)) && !this.isTeamKilling(move));
         });
     }
     getMovesInternal(curr: Point) : Move[] {
@@ -72,38 +91,36 @@ export class ChessController{
             let diag1: Point = [row+dir,col-1];
             let diag2: Point = [row+dir,col+1];
             let stop: boolean = false;
-            let currPath: Point[] = [];
             if(this.inBounds(up)){
                 if(this.getPiece(up)===" ") {
-                    currPath.push(up);
-                    moveable.push({start:curr, end:up, path:currPath});
+                    moveable.push({start:curr, end:up, path:[up]});
                 }
                 else stop = true;
             }
             if(this.inBounds(upup) && !stop){
                 if(this.getPiece(upup)===" "){
-                    currPath.push(upup);
-                    moveable.push({start:curr, end:upup, path:currPath});
+                    moveable.push({start:curr, end:upup, path:[up, upup]});
                 }
             }
-            currPath = []
-            let lastCell: Point = this.lastPath[this.lastPath.length-1];
-            let diags: Point[] = [diag1,diag2];
-            for (const diag of diags){
-                currPath = []
-                if(this.inBounds(diag)){
-                    //also diag needs to be on lastPath and the piece at the end of lastpath needs to be a pawn
-                    //unless chess 10 is enabled
-                    // or if it's a piece then we can just take it
-                    let intersect: boolean = false;
-                    for(const checkCell of this.lastPath){
-                        if(diag[0] === checkCell[0] && diag[1] === checkCell[1]){
-                            intersect = true;
+            if(this.lastPath.length>0){
+                let lastCell: Point = this.lastPath[this.lastPath.length-1];
+                let diags: Point[] = [diag1,diag2];
+                for (const diag of diags){
+                    if(this.inBounds(diag)){
+                        //also diag needs to be on lastPath and the piece at the end of lastpath needs to be a pawn
+                        //unless chess 10 is enabled
+                        // or if it's a piece then we can just take it
+                        let intersect: boolean = false;
+                        for(const checkCell of this.lastPath){
+                            if(diag[0] === checkCell[0] && diag[1] === checkCell[1]){
+                                intersect = true;
+                            }
                         }
-                    }
-                    if(intersect && this.getPiece(lastCell).toLowerCase() === "p"){
-                        currPath.push(diag);
-                        moveable.push({start:curr, end:diag, path:currPath});
+                        if(intersect 
+                            && (this.getPiece(lastCell).toLowerCase() === "p" || this.enableEnpassant) 
+                            || this.getPiece(diag) !== " "){
+                                moveable.push({start:curr, end:diag, path:[diag]});
+                        }
                     }
                 }
             }
@@ -118,10 +135,10 @@ export class ChessController{
                     currPath.push(currP);
                     if(this.inBounds(currP)){
                         if(this.getPiece(currP) === " "){
-                            moveable.push({start:curr, end:currP, path:currPath});
+                            moveable.push({start:curr, end:currP, path:[...currPath]});
                         }else{
                             // break early if any condition fails... eg. put ourselves in check, same team
-                            moveable.push({start:curr, end:currP, path:currPath});
+                            moveable.push({start:curr, end:currP, path:[...currPath]});
                             break;
                         }
                     }
@@ -131,10 +148,9 @@ export class ChessController{
             let dr: number[] = [2,2,-2,-2,1,1,-1,-1];
             let dc: number[] = [1,-1,1,-1,2,-2,2,-2];
             for(let k = 0;k<8;k++){
-                let currPath: Point[] = [];
                 let currP: Point = [row+dr[k],col+dc[k]];
                 if(this.inBounds(currP)){
-                    moveable.push({start:curr, end:currP, path:currPath});
+                    moveable.push({start:curr, end:currP, path:[currP]});
                 }
             }
         }if(currPiece.toLowerCase() === "r" || currPiece.toLowerCase() === "q"){
@@ -147,10 +163,10 @@ export class ChessController{
                     currPath.push(currP);
                     if(this.inBounds(currP)){
                         if(this.getPiece(currP) === " "){
-                            moveable.push({start:curr, end:currP, path:currPath});
+                            moveable.push({start:curr, end:currP, path:[...currPath]});
                         }else{
                             // break early if any condition fails... eg. put ourselves in check, same team
-                            moveable.push({start:curr, end:currP, path:currPath});
+                            moveable.push({start:curr, end:currP, path:[...currPath]});
                             break;
                         }
                     }
@@ -160,17 +176,24 @@ export class ChessController{
             let dr: number[] = [1,-1,0,1,-1,0,1,-1];
             let dc: number[] = [1,1,1,-1,-1,-1,0,0];
             for(let k = 0;k<8;k++){
-                let currPath: Point[] = [];
                 let currP: Point = [row+dr[k],col+dc[k]];
                 if(this.inBounds(currP)){
-                    moveable.push({start:curr, end:currP, path:currPath});
+                    moveable.push({start:curr, end:currP, path:[currP]});
                 }
             }
         }
         return moveable;
     }
     isTeamKilling(move: Move) : boolean {
-        return this.sameTeam(move.start,move.end);
+        let emptySquare: boolean = this.getPiece(move.end) === " ";
+        let selfEnpassant: boolean = false;
+        if(this.enableEnpassant && emptySquare && this.lastPath.length>0){
+            // make sure we dont kill ourselves
+            const enPassanted = this.lastPath.some(value => value[0] === move.end[0] && value[1] === move.end[1]);
+            let lastCell: Point = this.lastPath[this.lastPath.length-1];
+            if(this.sameTeam(move.start,lastCell) && enPassanted) selfEnpassant = true;
+        }
+        return this.sameTeam(move.start,move.end) || selfEnpassant;
     }
     inCheck(white: boolean) : boolean {
         // for every enemy piece get their moves and see if they can attack our king
@@ -191,21 +214,19 @@ export class ChessController{
     
     executeMove(move: Move): Point | undefined {
         // check if we en passanted
-        // let lastCell: Point = this.lastPath[this.lastPath.length-1];
-        // let intersect: boolean = false;
-        // for(const cell of move.path){
-        //     for(const checkCell of this.lastPath){
-        //         if(cell[0] === checkCell[0] && cell[1] === checkCell[1]){
-        //             intersect = true;
-        //         }
-        //     }
-        // }
-        // if(intersect){
-        //     //wipe the thing at lastCell
-        //     this.board[lastCell[0]][lastCell[1]] = " ";
-        // }
         let result: Point | undefined;
+        if(this.enableEnpassant && this.lastPath.length > 0){
+            let lastCell: Point = this.lastPath[this.lastPath.length-1];
+            const enPassanted = this.lastPath.some(value => value[0] === move.end[0] && value[1] === move.end[1]);
+            if(enPassanted){
+                //wipe the thing at lastCell
+                this.board[lastCell[0]][lastCell[1]] = " ";
+                result = lastCell;
+            }
+        }
         if (this.board[move.end[0]][move.end[1]] !== " ") {
+            if (result)
+                throw 0;
             result = move.end;
         }
         this.board[move.end[0]][move.end[1]] = this.board[move.start[0]][move.start[1]];

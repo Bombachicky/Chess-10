@@ -232,7 +232,9 @@ export class Renderer {
 	}
 
 	pieces: RenderPiece[] = [];
-	controller: ChessController = new ChessController();
+	controller: ChessController = new ChessController({
+		enableEnpassant: true,
+	});
 
 	async initializeRenderer(theCanvas: HTMLCanvasElement) {
 		this.canvas = theCanvas;
@@ -352,13 +354,13 @@ export class Renderer {
 	}
 
 	startDrag(piece: RenderPiece) {
-		const moves = this.controller.getMovesInternal(piece.position);
-		console.log(moves);
+		const moves = this.controller.getMoves(piece.position);
 		moves.forEach(move => this.showMoveSpot(move.end));
 	}
 
 	finishDrag(piece: RenderPiece) {
-		const moves = this.controller.getMovesInternal(piece.position);
+		console.log("piece.position", piece.position);
+		const moves = this.controller.getMoves(piece.position);
 		const move = moves.find(move => move.end[0] === this.hoverSquare[0] && move.end[1] === this.hoverSquare[1]);
 
 		if (move) {
