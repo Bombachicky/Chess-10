@@ -347,13 +347,13 @@ export class Renderer {
 	}
 
 	startDrag(piece: RenderPiece) {
-		const moves = this.controller.getMovesInternal(piece.position);
+		const moves = this.controller.getMoves(piece.position);
 		console.log(moves);
 		moves.forEach(move => this.showMoveSpot(move.end));
 	}
 
 	finishDrag(piece: RenderPiece) {
-		const moves = this.controller.getMovesInternal(piece.position);
+		const moves = this.controller.getMoves(piece.position);
 		const move = moves.find(move => move.end[0] === this.hoverSquare[0] && move.end[1] === this.hoverSquare[1]);
 
 		if (move) {

@@ -23,7 +23,7 @@ export class ChessController{
       ["R", "N", "B", "Q", "K", "B", "N", "R"],
     ];
     // include the points along the path of the last move including the ending point
-    lastPath: Point[] = [[-1000, -1000]];
+    lastPath: Point[] = [];
     getPiece(curr: Point) : string{
         return this.board[curr[0]][curr[1]];
     }
@@ -173,21 +173,20 @@ export class ChessController{
         return this.sameTeam(move.start,move.end);
     }
     inCheck(white: boolean) : boolean {
-        let good: boolean = true;
         // for every enemy piece get their moves and see if they can attack our king
         for(let i = 0;i<8;i++){
             for(let j = 0;j<8;j++){
                 let checking: Point = [i,j];
                 if(this.isWhite(checking) === white)continue;
-                let possMoves: Move[] = this.getMoves(checking);
+                let possMoves: Move[] = this.getMovesInternal(checking);
                 for(const move of possMoves){
                     // if my king is white and this piece can attack white king im screwed
-                    if(white && this.getPiece(move.end) === "k") good = false;
-                    if(!white && this.getPiece(move.end) === "K") good = false;
+                    if(white && this.getPiece(move.end) === "k") return true;
+                    if(!white && this.getPiece(move.end) === "K") return true;
                 }
             }
         }
-        return good;
+        return false;
     }
     
     executeMove(move: Move){
