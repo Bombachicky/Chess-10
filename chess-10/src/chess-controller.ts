@@ -1,7 +1,7 @@
 // Point is row column
-type Point = [number, number];
+export type Point = [number, number];
 
-type Move = {
+export type Move = {
     start: Point;
     end: Point;
     path: Point[];
@@ -11,19 +11,19 @@ function copy2DArray(arr: string[][]): string[][] {
     return arr.map(row => [...row]);
 }
 
-class ChessController{
+export class ChessController{
     board: string[][] = [
-      ["p", "p", "p", "p", "p", "p", "p", "p"],
       ["r", "n", "b", "q", "k", "b", "n", "r"],
+      ["p", "p", "p", "p", "p", "p", "p", "p"],
       [" ", " ", " ", " ", " ", " ", " ", " "],
       [" ", " ", " ", " ", " ", " ", " ", " "],
       [" ", " ", " ", " ", " ", " ", " ", " "],
       [" ", " ", " ", " ", " ", " ", " ", " "],
-      ["R", "N", "B", "Q", "K", "B", "N", "R"],
       ["P", "P", "P", "P", "P", "P", "P", "P"],
+      ["R", "N", "B", "Q", "K", "B", "N", "R"],
     ];
     // include the points along the path of the last move including the ending point
-    lastPath: Point[];
+    lastPath: Point[] = [[-1000, -1000]];
     getPiece(curr: Point) : string{
         return this.board[curr[0]][curr[1]];
     }
@@ -192,20 +192,21 @@ class ChessController{
     
     executeMove(move: Move){
         // check if we en passanted
-        let lastCell: Point = this.lastPath[this.lastPath.length-1];
-        let intersect: boolean = false;
-        for(const cell of move.path){
-            for(const checkCell of this.lastPath){
-                if(cell[0] === checkCell[0] && cell[1] === checkCell[1]){
-                    intersect = true;
-                }
-            }
-        }
-        if(intersect){
-            //wipe the thing at lastCell
-            this.board[lastCell[0]][lastCell[1]] = " ";
-        }
-        this.board[move.end[0]][move.end[1]] = this.board[move.start[0]][move.end[1]];
+        // let lastCell: Point = this.lastPath[this.lastPath.length-1];
+        // let intersect: boolean = false;
+        // for(const cell of move.path){
+        //     for(const checkCell of this.lastPath){
+        //         if(cell[0] === checkCell[0] && cell[1] === checkCell[1]){
+        //             intersect = true;
+        //         }
+        //     }
+        // }
+        // if(intersect){
+        //     //wipe the thing at lastCell
+        //     this.board[lastCell[0]][lastCell[1]] = " ";
+        // }
+        this.board[move.end[0]][move.end[1]] = this.board[move.start[0]][move.start[1]];
+        this.board[move.start[0]][move.start[1]] = " ";
         this.lastPath = move.path;
     }
 }
