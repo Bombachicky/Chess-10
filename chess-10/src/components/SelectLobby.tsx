@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components';
 import { keyframes } from 'styled-components';
 import MainMenu from './MainMenu';
 import { useHistory } from 'react-router-dom';
-
+import Button from './Button';
 // Span Props Type
 interface SpanProps {
   type: 'first' | 'second';
@@ -118,6 +118,8 @@ const SelectLobby = () => {
           </Div>
         </Figure>
       </Body>
+
+      <Button></Button>
       <BackButton onClick={goBackToMainMenu}>Back to Menu</BackButton>  {/* Back button */}
     </MainMenu>
   );

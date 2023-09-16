@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
+
 function Username() {
   const [username, setUsername] = useState('');
   const history = useHistory();
@@ -28,16 +29,16 @@ function Username() {
   return (
     <>
       <div className="px-96 flex items-center justify-center w-screen ">
-        <div className="flex flex-col items-center space-y-4 bg-white p-6 rounded-md shadow-md">
+        <div className="flex flex-col items-center space-y-4  p-6 rounded-md ">
           <div className="w-72">
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username
+            <label htmlFor="username" className="flex items-center justify-center text-sm font-medium text-white">
+              <p>USERNAME</p>
             </label>
             <input
               type="text"
               name="username"
               id="username"
-              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className=" bg-transparent mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none  sm:text-sm"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
@@ -45,18 +46,20 @@ function Username() {
           <div className="flex space-x-4">
             <button
               type="button"
-              className="px-4 py-2 bg-green-500 text-white rounded-md"
+              className="coolBeans"
               onClick={handleCreateRoom}
             >
               Create Room
             </button>
             <button
               type="button"
-              className="px-4 py-2 bg-blue-500 text-white rounded-md"
+              className="coolBeans"
               onClick={handleJoinRoom}
             >
               Join Room
             </button>
+
+
           </div>
         </div>
       </div>

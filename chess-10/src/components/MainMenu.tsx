@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Importing necessary React hooks and Three.js
 import { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 // Importing the Vanta.js birds effect. Ignoring TypeScript errors for this line.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import BIRDS from 'vanta/dist/vanta.globe.min';
 import Username from './Username';
@@ -72,7 +74,7 @@ const MainMenu = (props: any) => {
       </div>
     </>
   );
-  
+
 }
 
 // Exporting the Menu for use in other parts of the application
