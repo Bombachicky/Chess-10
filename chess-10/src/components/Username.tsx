@@ -9,7 +9,7 @@ function Username() {
   const handleCreateRoom = () => {
     if (username) {
       console.log('Creating room with username:', username);
-      // Add your create room logic here
+      history.push('/create');
     } else {
       console.log('Please enter a username.');
     }
