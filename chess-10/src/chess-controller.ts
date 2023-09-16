@@ -13,6 +13,8 @@ function copy2DArray(arr: string[][]): string[][] {
 
 export class ChessController{
     enableEnpassant: boolean
+    canWhiteCastle: boolean
+    canBlackCastle: boolean
     board: string[][] = [
       ["r", "n", "b", "q", "k", "b", "n", "r"],
       ["p", "p", "p", "p", "p", "p", "p", "p"],
@@ -27,6 +29,9 @@ export class ChessController{
         enableEnpassant: boolean;
     }){
         this.enableEnpassant = enableEnpassant;
+        this.canWhiteCastle = true;
+        this.canBlackCastle = true;
+        
     }
     // include the points along the path of the last move including the ending point
     lastPath: Point[] = [];
@@ -53,6 +58,8 @@ export class ChessController{
         const result = new ChessController({
             enableEnpassant: this.enableEnpassant,
         });
+        result.canWhiteCastle = this.canWhiteCastle;
+        result.canBlackCastle = this.canBlackCastle;
         result.board = this.board.map(x => [...x]);
         result.lastPath = [...this.lastPath];
         return result;
@@ -181,6 +188,41 @@ export class ChessController{
                     moveable.push({start:curr, end:currP, path:[currP]});
                 }
             }
+            // white castle
+            let canCastle: boolean = false;
+            if((white && this.canWhiteCastle) || (!white && this.canBlackCastle)){
+                canCastle = true;
+            }
+            // TODO update canWhiteCastle, and canBlackCastle
+            let canCastleLeft: boolean=  false;
+            let canCastleRight: boolean=  false;
+            if(canCastle){
+                canCastleLeft = true;
+                canCastleRight = true;
+                for(let i = col-1;i>0;i--){
+                    let currP: Point = [row,i];
+                    if(this.getPiece(currP) !== " "){
+                        canCastleLeft = false;
+                        break;
+                    }
+                }
+                for(let i = col+1;i<7;i++){
+                    let currP: Point = [row,i];
+                    if(this.getPiece(currP) !== " "){
+                        canCastleRight = false;
+                        break;
+                    }
+                }
+            }
+            if(canCastleLeft){
+                let leftPoint: Point = [curr[0],curr[1]-2];
+                moveable.push({start:curr, end:leftPoint, path:[leftPoint]});
+            }
+            if(canCastleRight){
+                let rightPoint: Point = [curr[0],curr[1]+2];
+                moveable.push({start:curr, end:rightPoint, path:[rightPoint]});
+            }
+            
         }
         return moveable;
     }
@@ -212,22 +254,84 @@ export class ChessController{
         return false;
     }
     
-    executeMove(move: Move): Point | undefined {
+    executeMove(move: Move) {
         // check if we en passanted
-        let result: Point | undefined;
+        const result: ({
+            type: "destroy";
+            point: Point;
+        } | {
+            type: "move";
+            from: Point;
+            to: Point;
+        })[] = [];
         if(this.enableEnpassant && this.lastPath.length > 0){
             let lastCell: Point = this.lastPath[this.lastPath.length-1];
             const enPassanted = this.lastPath.some(value => value[0] === move.end[0] && value[1] === move.end[1]);
             if(enPassanted){
                 //wipe the thing at lastCell
                 this.board[lastCell[0]][lastCell[1]] = " ";
-                result = lastCell;
+                result.push({
+                    type: "destroy",
+                    point: lastCell,
+                });
             }
         }
         if (this.board[move.end[0]][move.end[1]] !== " ") {
-            if (result)
-                throw 0;
-            result = move.end;
+            result.push({
+                type: "destroy",
+                point: move.end,
+            });
+        }
+        // castle
+        if(this.getPiece(move.start).toLowerCase() === "k"){
+            let piece1: string = "K";
+            let piece2: string = "R";
+            if(this.isWhite(move.start)){
+                piece1 = "k";
+                piece2 = "r";
+            }
+            if(move.start[0] === move.end[0] && move.start[1] - move.end[1] === 2){
+                this.board[move.start[0]][move.start[1]] = " ";
+                this.board[move.end[0]][move.end[1]] = " ";
+                this.board[move.start[0]][move.start[1]-2] = piece1;
+                this.board[move.start[0]][move.start[1]-1] = piece2;
+                let rookPositionFrom: Point = [move.start[0],0];
+                let rookPositionTo: Point = [move.start[0],move.start[1]-1];
+                result.push({
+                    type: "move",
+                    from: move.start,
+                    to: move.end,
+                });
+                result.push({
+                    type: "move",
+                    from: rookPositionFrom,
+                    to: rookPositionTo,
+                });
+                
+            }else if(move.start[0] === move.end[0] && move.start[1] - move.end[1] === -2){
+                this.board[move.start[0]][move.start[1]] = " ";
+                this.board[move.end[0]][move.end[1]] = " ";
+                this.board[move.start[0]][move.start[1]+2] = piece1;
+                this.board[move.start[0]][move.start[1]+1] = piece2;
+                let rookPositionFrom: Point = [move.start[0],7];
+                let rookPositionTo: Point = [move.start[0],move.start[1]+1];
+                result.push({
+                    type: "move",
+                    from: move.start,
+                    to: move.end,
+                });
+                result.push({
+                    type: "move",
+                    from: rookPositionFrom,
+                    to: rookPositionTo,
+                });
+            }
+            
+        }
+        if(this.getPiece(move.start).toLowerCase() === "p"){
+            if(move.end[0] === 0 || move.end[0] === 7){
+                // promote
+            }    
         }
         this.board[move.end[0]][move.end[1]] = this.board[move.start[0]][move.start[1]];
         this.board[move.start[0]][move.start[1]] = " ";

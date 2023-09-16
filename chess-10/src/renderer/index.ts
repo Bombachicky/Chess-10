@@ -379,6 +379,7 @@ export class Renderer {
 					piece.obj.position.setX(offset + SQUARE_SIZE * j);
 					piece.obj.position.setY(0);
 					piece.obj.position.setZ(offset + SQUARE_SIZE * i);
+					piece.position = cmd.to;
 				}
 			});
 			piece.position = move.end;
