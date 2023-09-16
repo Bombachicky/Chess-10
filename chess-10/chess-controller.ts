@@ -48,7 +48,7 @@ class ChessController{
         return this.getMovesInternal(curr).filter(move => {
             const cloned = this.clone();
             cloned.executeMove(move);
-            return !cloned.inCheck();
+            return !cloned.inCheck(this.isWhite(curr));
         });
     }
     getMovesInternal(curr: Point) : Move[] {
