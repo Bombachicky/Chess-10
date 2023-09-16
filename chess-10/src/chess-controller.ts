@@ -189,7 +189,7 @@ export class ChessController{
         return false;
     }
     
-    executeMove(move: Move){
+    executeMove(move: Move): Point | undefined {
         // check if we en passanted
         // let lastCell: Point = this.lastPath[this.lastPath.length-1];
         // let intersect: boolean = false;
@@ -204,9 +204,14 @@ export class ChessController{
         //     //wipe the thing at lastCell
         //     this.board[lastCell[0]][lastCell[1]] = " ";
         // }
+        let result: Point | undefined;
+        if (this.board[move.end[0]][move.end[1]] !== " ") {
+            result = move.end;
+        }
         this.board[move.end[0]][move.end[1]] = this.board[move.start[0]][move.start[1]];
         this.board[move.start[0]][move.start[1]] = " ";
         this.lastPath = move.path;
+        return result;
     }
 }
 

@@ -1,4 +1,4 @@
-import { AmbientLight, AudioListener, Color, DirectionalLight, Matrix4, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PositionalAudio, Quaternion, Raycaster, Scene, SphereGeometry, Vector2, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, AudioListener, BoxGeometry, Color, DirectionalLight, Matrix4, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PositionalAudio, Quaternion, Raycaster, Scene, SphereGeometry, Vector2, Vector3, WebGLRenderer } from "three";
 import { loadAudioBuffer, loadOBJ } from "./assets";
 import { ChessController } from "../chess-controller";
 
@@ -7,9 +7,14 @@ const BOARD_SIZE = 8;
 
 const sphereGeom = new SphereGeometry(0.5, 16, 8);
 
+const moveGeom = new BoxGeometry(SQUARE_SIZE * 0.8, 0.1, SQUARE_SIZE * 0.8);
+
 const moveMaterial = new MeshStandardMaterial({
 	color: 0x00d000,
 	emissive: 0x00a000,
+	opacity: 0.3,
+	transparent: true,
+	depthWrite: false,
 });
 
 export type Effect = () => void;
@@ -347,17 +352,23 @@ export class Renderer {
 	}
 
 	startDrag(piece: RenderPiece) {
-		const moves = this.controller.getMoves(piece.position);
+		const moves = this.controller.getMovesInternal(piece.position);
 		console.log(moves);
 		moves.forEach(move => this.showMoveSpot(move.end));
 	}
 
 	finishDrag(piece: RenderPiece) {
-		const moves = this.controller.getMoves(piece.position);
+		const moves = this.controller.getMovesInternal(piece.position);
 		const move = moves.find(move => move.end[0] === this.hoverSquare[0] && move.end[1] === this.hoverSquare[1]);
 
 		if (move) {
-			this.controller.executeMove(move);
+			const capturedPos = this.controller.executeMove(move);
+			if (capturedPos) {
+				const capturedPiece = this.findPiece(capturedPos);
+				this.explodePiece(capturedPiece.position);
+				this.scene.remove(capturedPiece.obj);
+				this.pieces.splice(this.pieces.indexOf(capturedPiece), 1);
+			}
 			piece.position = move.end;
 		}
 
@@ -476,15 +487,12 @@ export class Renderer {
 
 	showMoveSpot(pos: [number, number]) {
 		const offset = -SQUARE_SIZE / 2 * (BOARD_SIZE - 1);
-		const mesh = new Mesh(sphereGeom, moveMaterial);
-		mesh.castShadow = true;
-		mesh.receiveShadow = true;
+		const mesh = new Mesh(moveGeom, moveMaterial);
 		mesh.position.set(
 			offset + pos[1] * SQUARE_SIZE,
-			0.75,
+			0,
 			offset + pos[0] * SQUARE_SIZE,
 		);
-		mesh.scale.setScalar(1.5);
 		this.moveSpots.push(mesh);
 		this.scene.add(mesh);
 	}
