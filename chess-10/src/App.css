@@ -108,3 +108,9 @@ small,
   transform: scale(1.05);
   will-change: transform;
 }
+
+.back {
+  position: absolute;
+  bottom: 20px;
+
+}

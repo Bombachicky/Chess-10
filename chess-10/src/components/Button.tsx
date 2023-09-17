@@ -1,16 +1,20 @@
+interface ButtonProps {
+    onClick?: () => void;  // Define an optional onClick handler prop
+    children?: React.ReactNode;  // Define an optional children prop to allow text or other elements to be passed in
+}
 
-
-function Button() {
+function Button({ onClick, children }: ButtonProps) {
     return (
         <>
             <button
                 type="button"
-                className="coolBeans"
+                className="coolBeans back"
+                onClick={onClick}  // Pass the onClick handler to the button element
             >
-                Back to Menu
+                {children}
             </button>
         </>
-    )
+    );
 }
 
-export default Button
+export default Button;
