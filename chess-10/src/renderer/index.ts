@@ -1,6 +1,6 @@
 import { AmbientLight, AudioListener, BoxGeometry, Color, DirectionalLight, Matrix4, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PositionalAudio, Quaternion, Raycaster, Scene, SphereGeometry, Vector2, Vector3, WebGLRenderer } from "three";
 import { loadAudioBuffer, loadOBJ } from "./assets";
-import { ChessController } from "../chess-controller";
+import { ChessController, Point } from "../chess-controller";
 import PieceSelect  from "../components/PieceSelect";
 
 const SQUARE_SIZE = 5.64633;
@@ -86,7 +86,7 @@ function randomUnitVector() {
 	return vec;
 }
 
-interface RenderPiece {
+export interface RenderPiece {
 	obj: Object3D;
 	mtl: string;
 	position: [number, number];
@@ -237,10 +237,12 @@ export class Renderer {
 	controller: ChessController = new ChessController({
 		enableEnpassant: true,
 	});
+	setPieceToPromote: (piece: RenderPiece) => void;
 
-	async initializeRenderer(theCanvas: HTMLCanvasElement) {
+	async initializeRenderer(theCanvas: HTMLCanvasElement, setPieceToPromote: (piece: RenderPiece) => void) {
 		this.canvas = theCanvas;
 		this.renderer = new WebGLRenderer({ antialias: true, canvas: this.canvas });
+		this.setPieceToPromote = setPieceToPromote;
 
 		this.canvas.addEventListener("mousemove", e => {
 			this.pointer.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
@@ -361,6 +363,18 @@ export class Renderer {
 		moves.forEach(move => this.showMoveSpot(move.end));
 	}
 
+	promote(piece: RenderPiece, unit: string, unitOnBoard: string) {
+		this.setPieceToPromote(undefined);
+		this.scene.remove(piece.obj);
+		const old = piece.obj.position.clone();
+		piece.obj = loadOBJ(piece.mtl, `${unit}.obj`);
+		piece.obj.position.copy(old);
+		this.scene.add(piece.obj);
+		this.controller.board[piece.position[0]][piece.position[1]] = piece.mtl === "white.mtl" // bruh
+			? unitOnBoard.toLowerCase()
+			: unitOnBoard.toUpperCase();
+	}
+
 	finishDrag(piece: RenderPiece) {
 		console.log("piece.position", piece.position);
 		const moves = this.controller.getMoves(piece.position);
@@ -388,10 +402,7 @@ export class Renderer {
 					piece.position = cmd.to;
 				}
 				else if (cmd.type === "promote") {
-					PieceSelect;
-					this.scene.remove(piece.obj);
-					piece.obj = loadOBJ(piece.mtl, cmd.unit);
-					this.scene.add(piece.obj);
+					this.setPieceToPromote(piece);
 				}
 			});
 			piece.position = move.end;

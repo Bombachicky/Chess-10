@@ -1,8 +1,9 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { Renderer } from "../renderer";
+import { RenderPiece, Renderer } from "../renderer";
 import { loadAllAssets } from "../renderer/assets";
+import PieceSelect  from "../components/PieceSelect";
 
 const Container = styled.div`
   display: flex;
@@ -21,6 +22,9 @@ const Canvas = styled.canvas`
 
 const Game = () => {
   const history = useHistory();
+
+  let [renderer, setRenderer] = useState<Renderer>();
+  let [pieceToPromote, setPieceToPromote] = useState<RenderPiece | undefined>();
 
   let iteration = 0;
   const onCanvasChange = useCallback(async (canvas: HTMLCanvasElement | null) => {
@@ -41,8 +45,9 @@ const Game = () => {
     await loadAllAssets();
 
     const renderer = new Renderer();
+    setRenderer(renderer);
 
-    await renderer.initializeRenderer(canvas);
+    await renderer.initializeRenderer(canvas, setPieceToPromote);
 
     let previousTickTime: number | undefined;
     let lag: number = 0;
@@ -84,6 +89,7 @@ const Game = () => {
   return (
     <Container>
       <Canvas ref={onCanvasChange} />
+      {pieceToPromote ? <PieceSelect piece={pieceToPromote} promoteTo={renderer.promote.bind(renderer)}/> : undefined}
     </Container>
   );
 };
