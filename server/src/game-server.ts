@@ -37,10 +37,10 @@ export class GameServer {
 				try {
 					const packet = JSON.parse(e.toString());
 					if (ws === this.white) {
-						this.black.send(packet);
+						this.black.send(JSON.stringify(packet));
 					}
 					else {
-						this.white.send(packet);
+						this.white.send(JSON.stringify(packet));
 					}
 				}
 				catch (e) {

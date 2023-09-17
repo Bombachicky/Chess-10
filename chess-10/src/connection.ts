@@ -2,6 +2,11 @@ import { useHistory } from "react-router-dom";
 import { history } from "./components/Username";
 import { setRole } from "./components/Game";
 
+let callback: (data: any) => void;
+export function setDataCallback(callback_: (data: any) => void) {
+	callback = callback_;
+}
+
 export class Connection {
 
 	ws: WebSocket;
@@ -18,6 +23,9 @@ export class Connection {
 			if (data.type === "join") {
 				setRole(data.role === "white");
 				history.push("/game");
+			}
+			else {
+				callback(data);
 			}
 		});
 	}

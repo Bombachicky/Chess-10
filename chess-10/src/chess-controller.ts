@@ -12,6 +12,8 @@ function copy2DArray(arr: string[][]): string[][] {
 }
 
 export class ChessController{
+    me: "white" | "black";
+    myTurn: boolean;
     enableEnpassant: boolean
     canWhiteCastle: boolean
     canBlackCastle: boolean
@@ -25,9 +27,12 @@ export class ChessController{
       ["P", "P", "P", "P", "P", "P", "P", "P"],
       ["R", "N", "B", "Q", "K", "B", "N", "R"],
     ];
-    constructor({ enableEnpassant }: {
+    constructor({ me, enableEnpassant }: {
+        me: "white" | "black";
         enableEnpassant: boolean;
     }){
+        this.me = me;
+        this.myTurn = this.me === "white";
         this.enableEnpassant = enableEnpassant;
         this.canWhiteCastle = true;
         this.canBlackCastle = true;
@@ -56,8 +61,10 @@ export class ChessController{
     }
     clone(): ChessController {
         const result = new ChessController({
+            me: this.me,
             enableEnpassant: this.enableEnpassant,
         });
+        result.myTurn = this.myTurn;
         result.canWhiteCastle = this.canWhiteCastle;
         result.canBlackCastle = this.canBlackCastle;
         result.board = this.board.map(x => [...x]);
