@@ -451,9 +451,6 @@ export class Renderer {
 					const piece = this.findPiece(cmd.from);
 					const [i, j] = cmd.to;
 					const offset = -SQUARE_SIZE / 2 * (BOARD_SIZE - 1);
-					this.scene.remove(piece.obj);
-					piece.obj = loadOBJ(piece.mtl, "knight.obj");
-					this.scene.add(piece.obj);
 					piece.targetPosition.setX(offset + SQUARE_SIZE * j);
 					piece.targetPosition.setY(0);
 					piece.targetPosition.setZ(offset + SQUARE_SIZE * i);
