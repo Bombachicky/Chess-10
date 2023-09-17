@@ -364,13 +364,23 @@ export class Renderer {
 		const move = moves.find(move => move.end[0] === this.hoverSquare[0] && move.end[1] === this.hoverSquare[1]);
 
 		if (move) {
-			const capturedPos = this.controller.executeMove(move);
-			if (capturedPos) {
-				const capturedPiece = this.findPiece(capturedPos);
-				this.explodePiece(capturedPiece.position);
-				this.scene.remove(capturedPiece.obj);
-				this.pieces.splice(this.pieces.indexOf(capturedPiece), 1);
-			}
+			const commands = this.controller.executeMove(move);
+			commands.forEach(cmd => {
+				if (cmd.type === "destroy") {
+					const capturedPiece = this.findPiece(cmd.point);
+					this.explodePiece(capturedPiece.position);
+					this.scene.remove(capturedPiece.obj);
+					this.pieces.splice(this.pieces.indexOf(capturedPiece), 1);
+				}
+				else if (cmd.type === "move") {
+					const piece = this.findPiece(cmd.from);
+					const [i, j] = cmd.to;
+					const offset = -SQUARE_SIZE / 2 * (BOARD_SIZE - 1);
+					piece.obj.position.setX(offset + SQUARE_SIZE * j);
+					piece.obj.position.setY(0);
+					piece.obj.position.setZ(offset + SQUARE_SIZE * i);
+				}
+			});
 			piece.position = move.end;
 		}
 
