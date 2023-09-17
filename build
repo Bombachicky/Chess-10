@@ -1,0 +1,5 @@
+#!/bin/bash
+
+(cd common; npx tsc)
+(cd server; npx tsc)
+(cd chess-10; npm run build)

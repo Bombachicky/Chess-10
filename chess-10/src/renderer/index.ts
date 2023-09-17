@@ -1,6 +1,6 @@
 import { AmbientLight, AudioListener, BoxGeometry, Color, DirectionalLight, Matrix4, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PositionalAudio, Quaternion, Raycaster, Scene, SphereGeometry, Vector2, Vector3, WebGLRenderer } from "three";
 import { loadAudioBuffer, loadOBJ } from "./assets";
-import { ChessController } from "../chess-controller";
+import { ChessController } from "common";
 
 const SQUARE_SIZE = 5.64633;
 const BOARD_SIZE = 8;
