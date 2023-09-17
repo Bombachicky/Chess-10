@@ -5,6 +5,7 @@ import './App.css';
 import GameOver from './components/GameOver';
 import Game from "./components/Game";
 import Waiting from './components/WaitingForPlayer';
+import PieceSelect from './components/PieceSelect';
 
 function App() {
   return (
@@ -15,7 +16,7 @@ function App() {
         <Route path="/game-over" component={GameOver} />
         <Route path="/game" component={Game} />
         <Route path="/create" component={Waiting} />
-
+        <Route path="/pieces" exact component={PieceSelect}/>
         {/* Add more routes as needed */}
       </Switch>
     </Router>
