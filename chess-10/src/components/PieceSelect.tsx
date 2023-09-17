@@ -1,5 +1,5 @@
 
-const PieceSelect = () => {
+export const PieceSelect = () => {
     const border = "cursor-pointer transition duration-300 ease-in-out border border-black hover:border-red-500 border-4";
     return(
         <>

@@ -1,6 +1,7 @@
 import { AmbientLight, AudioListener, BoxGeometry, Color, DirectionalLight, Matrix4, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera, PlaneGeometry, PositionalAudio, Quaternion, Raycaster, Scene, SphereGeometry, Vector2, Vector3, WebGLRenderer } from "three";
 import { loadAudioBuffer, loadOBJ } from "./assets";
 import { ChessController } from "../chess-controller";
+import PieceSelect  from "../components/PieceSelect";
 
 const SQUARE_SIZE = 5.64633;
 const BOARD_SIZE = 8;
@@ -87,6 +88,7 @@ function randomUnitVector() {
 
 interface RenderPiece {
 	obj: Object3D;
+	mtl: string;
 	position: [number, number];
 }
 
@@ -328,8 +330,9 @@ export class Renderer {
 					case "k": piece = "king.obj"; break;
 				}
 				if (piece !== " ") {
+					const mtl = black ? "black.mtl" : "white.mtl";
 					const obj = loadOBJ(
-						black ? "black.mtl" : "white.mtl",
+						mtl,
 						piece,
 					);
 					const offset = -SQUARE_SIZE / 2 * (BOARD_SIZE - 1);
@@ -339,7 +342,7 @@ export class Renderer {
 						obj.rotateY(Math.PI);
 					this.scene.add(obj);
 					this.pieces.push({
-						obj,
+						obj, mtl,
 						position: [i, j],
 					});
 				}
@@ -378,10 +381,19 @@ export class Renderer {
 					const piece = this.findPiece(cmd.from);
 					const [i, j] = cmd.to;
 					const offset = -SQUARE_SIZE / 2 * (BOARD_SIZE - 1);
+					this.scene.remove(piece.obj);
+					piece.obj = loadOBJ(piece.mtl, "knight.obj");
+					this.scene.add(piece.obj);
 					piece.obj.position.setX(offset + SQUARE_SIZE * j);
 					piece.obj.position.setY(0);
 					piece.obj.position.setZ(offset + SQUARE_SIZE * i);
 					piece.position = cmd.to;
+				}
+				else if (cmd.type === "promote") {
+					PieceSelect;
+					this.scene.remove(piece.obj);
+					piece.obj = loadOBJ(piece.mtl, cmd.unit);
+					this.scene.add(piece.obj);
 				}
 			});
 			piece.position = move.end;

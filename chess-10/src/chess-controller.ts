@@ -263,6 +263,9 @@ export class ChessController{
             type: "move";
             from: Point;
             to: Point;
+        } | {
+            type: "promote";
+            unit: string;
         })[] = [];
         if(this.enableEnpassant && this.lastPath.length > 0){
             let lastCell: Point = this.lastPath[this.lastPath.length-1];
@@ -304,11 +307,6 @@ export class ChessController{
                 let rookPositionTo: Point = [move.start[0],move.start[1]-1];
                 result.push({
                     type: "move",
-                    from: move.start,
-                    to: move.end,
-                });
-                result.push({
-                    type: "move",
                     from: rookPositionFrom,
                     to: rookPositionTo,
                 });
@@ -326,11 +324,6 @@ export class ChessController{
                 let rookPositionTo: Point = [move.start[0],move.start[1]+1];
                 result.push({
                     type: "move",
-                    from: move.start,
-                    to: move.end,
-                });
-                result.push({
-                    type: "move",
                     from: rookPositionFrom,
                     to: rookPositionTo,
                 });
@@ -343,6 +336,10 @@ export class ChessController{
         if(this.getPiece(move.start).toLowerCase() === "p"){
             if(move.end[0] === 0 || move.end[0] === 7){
                 // promote
+                result.push({
+                    type: "promote",
+                    unit: "knight.obj",
+                })
             }    
         }
         this.board[move.end[0]][move.end[1]] = this.board[move.start[0]][move.start[1]];
