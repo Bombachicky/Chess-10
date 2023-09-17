@@ -30,6 +30,12 @@ const Game = () => {
       return;
     }
 
+    // const ws = new WebSocket(
+    //   (window.location.protocol === "https:" ? "wss://" : "ws://")
+    //   + window.location.host
+    //   + "/play"
+    // );
+
     const myIteration = iteration;
 
     await loadAllAssets();
