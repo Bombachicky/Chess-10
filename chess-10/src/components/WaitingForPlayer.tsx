@@ -1,7 +1,14 @@
+import { useHistory } from 'react-router-dom';
 import MainMenu from './MainMenu';
+import Button from './Button';
+
 
 function Waiting() {
+    const history = useHistory();
 
+    const goBackToMainMenu = () => {
+        history.push('/');  // Navigate back to main menu. Change the route as per your app's routing.
+    };
     return (
         <>
             <MainMenu>
@@ -16,6 +23,8 @@ function Waiting() {
                     <div className="shadow"></div>
                     <div className="shadow-two"></div>
                 </div>
+                <Button onClick={goBackToMainMenu}>Back to Menu</Button>
+
             </MainMenu>
 
         </>
