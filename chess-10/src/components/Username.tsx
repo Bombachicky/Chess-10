@@ -1,28 +1,28 @@
 import { useState } from 'react';
+import { History } from 'history';
 import { useHistory } from 'react-router-dom';
+import { connectAndWait } from "../connection";
 
+// ugly hack, I hate react
+export let history: History<unknown>;
 
 function Username() {
   const [username, setUsername] = useState('');
-  const history = useHistory();
+  if (history === undefined)
+    history = useHistory();
 
   const handleCreateRoom = () => {
     if (username) {
       console.log('Creating room with username:', username);
       history.push('/create');
+      connectAndWait(username);
     } else {
-      console.log('Please enter a username.');
+      alert('Please enter a username.');
     }
   };
 
   const handleJoinRoom = () => {
-    if (username) {
-      console.log('Joining room with username:', username);
-      // Add your join room logic here
-      history.push('/select-lobby');
-    } else {
-      console.log('Please enter a username.');
-    }
+    history.push('/select-lobby');
   };
 
 

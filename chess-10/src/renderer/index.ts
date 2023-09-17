@@ -231,12 +231,14 @@ export class Renderer {
 		), pieceExplosion);
 	}
 
+	isWhite: boolean;
 	pieces: RenderPiece[] = [];
 	controller: ChessController = new ChessController({
 		enableEnpassant: true,
 	});
 
-	async initializeRenderer(theCanvas: HTMLCanvasElement) {
+	async initializeRenderer(theCanvas: HTMLCanvasElement, isWhite: boolean) {
+		this.isWhite = isWhite;
 		this.canvas = theCanvas;
 		this.renderer = new WebGLRenderer({ antialias: true, canvas: this.canvas });
 
@@ -350,7 +352,7 @@ export class Renderer {
 	}
 
 	isInvertedView() {
-		return true;
+		return this.isWhite;
 	}
 
 	startDrag(piece: RenderPiece) {

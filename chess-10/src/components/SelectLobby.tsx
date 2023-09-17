@@ -4,6 +4,8 @@ import { keyframes } from 'styled-components';
 import MainMenu from './MainMenu';
 import { useHistory } from 'react-router-dom';
 import Button from './Button';
+import { useEffect, useState } from "react";
+import { connectJoin } from "../connection";
 // Span Props Type
 interface SpanProps {
   type: 'first' | 'second';
@@ -105,13 +107,21 @@ const GridContainer = styled.div`
   gap: 128px;
 `;
 
-const LobbyCard: React.FC = () => {
+type Room = {
+  username: string;
+  roomId: string;
+};
+
+const LobbyCard: React.FC<Room> = (props: Room) => {
   return (
     <Body>
-      <Figure>
+      <Figure onClick={() => {
+        console.log("join room", props.roomId);
+        connectJoin(props.roomId);
+      }}>
         <Div>
-          <Span type="first">Username</Span>
-          <Span type="second">Join Games</Span>
+          <Span type="first">{props.username}</Span>
+          <Span type="second">Join Game</Span>
         </Div>
       </Figure>
     </Body>
@@ -126,13 +136,25 @@ const SelectLobby = () => {
     history.push('/');  // Navigate back to main menu. Change the route as per your app's routing.
   };
 
+  const [rooms, setRooms] = useState([] as Room[]);
+  useEffect(() => {
+    fetch("api/list-rooms").then(x => x.json()).then((data: any) => {
+      setRooms(data.map((x: any) => ({
+        roomId: x.id,
+        username: x.username,
+      })));
+    });
+  }, []);
+
   return (
     <MainMenu>
       <TitleHeader>
         <h1>Select Lobby</h1>
       </TitleHeader>
       <GridContainer>
-        
+        {rooms.map(room => (
+          <LobbyCard key={room.roomId} username={`${room.username}'s Room`} roomId={room.roomId} />
+        ))}
       </GridContainer>
 
       <Button onClick={goBackToMainMenu}>Back to Menu</Button>

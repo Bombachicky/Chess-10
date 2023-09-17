@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { Renderer } from "../renderer";
 import { loadAllAssets } from "../renderer/assets";
+import { connection } from "../connection";
 
 const Container = styled.div`
   display: flex;
@@ -19,8 +20,17 @@ const Canvas = styled.canvas`
   background-color: #111;
 `;
 
+let isWhite: boolean;
+export function setRole(isWhite_: boolean) {
+  isWhite = isWhite_;
+}
+
 const Game = () => {
   const history = useHistory();
+
+  if (connection === undefined) {
+    history.push("/");
+  }
 
   let iteration = 0;
   const onCanvasChange = useCallback(async (canvas: HTMLCanvasElement | null) => {
@@ -30,19 +40,13 @@ const Game = () => {
       return;
     }
 
-    // const ws = new WebSocket(
-    //   (window.location.protocol === "https:" ? "wss://" : "ws://")
-    //   + window.location.host
-    //   + "/play"
-    // );
-
     const myIteration = iteration;
 
     await loadAllAssets();
 
     const renderer = new Renderer();
 
-    await renderer.initializeRenderer(canvas);
+    await renderer.initializeRenderer(canvas, isWhite);
 
     let previousTickTime: number | undefined;
     let lag: number = 0;
