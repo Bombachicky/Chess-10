@@ -4,6 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import { RenderPiece, Renderer } from "../renderer";
 import { loadAllAssets } from "../renderer/assets";
 import PieceSelect  from "../components/PieceSelect";
+import { connection } from "../connection";
 
 const Container = styled.div`
   display: flex;
@@ -20,8 +21,17 @@ const Canvas = styled.canvas`
   background-color: #111;
 `;
 
+let isWhite: boolean;
+export function setRole(isWhite_: boolean) {
+  isWhite = isWhite_;
+}
+
 const Game = () => {
   const history = useHistory();
+
+  if (connection === undefined) {
+    history.push("/");
+  }
 
   let [renderer, setRenderer] = useState<Renderer>();
   let [pieceToPromote, setPieceToPromote] = useState<RenderPiece | undefined>();
@@ -34,12 +44,6 @@ const Game = () => {
       return;
     }
 
-    // const ws = new WebSocket(
-    //   (window.location.protocol === "https:" ? "wss://" : "ws://")
-    //   + window.location.host
-    //   + "/play"
-    // );
-
     const myIteration = iteration;
 
     await loadAllAssets();
@@ -47,7 +51,7 @@ const Game = () => {
     const renderer = new Renderer();
     setRenderer(renderer);
 
-    await renderer.initializeRenderer(canvas, setPieceToPromote);
+    await renderer.initializeRenderer(canvas, isWhite, setPieceToPromote);
 
     let previousTickTime: number | undefined;
     let lag: number = 0;

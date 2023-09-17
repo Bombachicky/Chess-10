@@ -2,6 +2,7 @@ import { AmbientLight, AudioListener, BoxGeometry, Color, DirectionalLight, Matr
 import { loadAudioBuffer, loadOBJ } from "./assets";
 import { ChessController, Point } from "../chess-controller";
 import PieceSelect  from "../components/PieceSelect";
+import { connection, setDataCallback } from "../connection";
 
 const SQUARE_SIZE = 5.64633;
 const BOARD_SIZE = 8;
@@ -88,7 +89,9 @@ function randomUnitVector() {
 
 export interface RenderPiece {
 	obj: Object3D;
+	targetPosition: Vector3;
 	mtl: string;
+	isWhite: boolean;
 	position: [number, number];
 }
 
@@ -233,16 +236,26 @@ export class Renderer {
 		), pieceExplosion);
 	}
 
+	isWhite: boolean;
 	pieces: RenderPiece[] = [];
-	controller: ChessController = new ChessController({
-		enableEnpassant: true,
-	});
+	controller: ChessController;
 	setPieceToPromote: (piece: RenderPiece) => void;
 
-	async initializeRenderer(theCanvas: HTMLCanvasElement, setPieceToPromote: (piece: RenderPiece) => void) {
+	async initializeRenderer(theCanvas: HTMLCanvasElement, isWhite: boolean, setPieceToPromote: (piece: RenderPiece) => void) {
+		this.isWhite = isWhite;
 		this.canvas = theCanvas;
 		this.renderer = new WebGLRenderer({ antialias: true, canvas: this.canvas });
 		this.setPieceToPromote = setPieceToPromote;
+		this.controller = new ChessController({
+			me: isWhite ? "white" : "black",
+			enableEnpassant: true,
+		});
+
+		setDataCallback(data => {
+			if (data.type === "move") {
+				this.doMove(data.from, data.to, true);
+			}
+		});
 
 		this.canvas.addEventListener("mousemove", e => {
 			this.pointer.x = (e.clientX / this.canvas.clientWidth) * 2 - 1;
@@ -252,6 +265,8 @@ export class Renderer {
 		this.canvas.addEventListener("mousedown", e => {
 			if (e.button === 0) {
 				if (this.hoveredPiece) {
+					if (!this.controller.myTurn)
+						return;
 					this.draggingPiece = this.hoveredPiece;
 
 					this.startDrag(this.draggingPiece);
@@ -343,6 +358,8 @@ export class Renderer {
 					this.scene.add(obj);
 					this.pieces.push({
 						obj, mtl,
+						targetPosition: obj.position.clone(),
+						isWhite: !black,
 						position: [i, j],
 					});
 				}
@@ -355,7 +372,7 @@ export class Renderer {
 	}
 
 	isInvertedView() {
-		return true;
+		return this.isWhite;
 	}
 
 	startDrag(piece: RenderPiece) {
@@ -375,12 +392,14 @@ export class Renderer {
 			: unitOnBoard.toUpperCase();
 	}
 
-	finishDrag(piece: RenderPiece) {
-		console.log("piece.position", piece.position);
-		const moves = this.controller.getMoves(piece.position);
-		const move = this.hoverSquare === undefined ? undefined : moves.find(move => move.end[0] === this.hoverSquare[0] && move.end[1] === this.hoverSquare[1]);
+	doMove(from: Point, to: Point | undefined, legal: boolean): boolean {
+		const piece = this.findPiece(from);
 
-		if (move) {
+		const moves = this.controller.getMoves(piece.position);
+		const move = to === undefined ? undefined : moves.find(move => move.end[0] === to[0] && move.end[1] === to[1]);
+
+		let success = false;
+		if (move && legal) {
 			const commands = this.controller.executeMove(move);
 			commands.forEach(cmd => {
 				if (cmd.type === "destroy") {
@@ -396,9 +415,9 @@ export class Renderer {
 					this.scene.remove(piece.obj);
 					piece.obj = loadOBJ(piece.mtl, "knight.obj");
 					this.scene.add(piece.obj);
-					piece.obj.position.setX(offset + SQUARE_SIZE * j);
-					piece.obj.position.setY(0);
-					piece.obj.position.setZ(offset + SQUARE_SIZE * i);
+					piece.targetPosition.setX(offset + SQUARE_SIZE * j);
+					piece.targetPosition.setY(0);
+					piece.targetPosition.setZ(offset + SQUARE_SIZE * i);
 					piece.position = cmd.to;
 				}
 				else if (cmd.type === "promote") {
@@ -406,13 +425,28 @@ export class Renderer {
 				}
 			});
 			piece.position = move.end;
+			success = true;
+			this.controller.myTurn = !this.controller.myTurn;
 		}
 
 		const [i, j] = piece.position;
 		const offset = -SQUARE_SIZE / 2 * (BOARD_SIZE - 1);
-		piece.obj.position.setX(offset + SQUARE_SIZE * j);
-		piece.obj.position.setY(0);
-		piece.obj.position.setZ(offset + SQUARE_SIZE * i);
+		piece.targetPosition.setX(offset + SQUARE_SIZE * j);
+		piece.targetPosition.setY(0);
+		piece.targetPosition.setZ(offset + SQUARE_SIZE * i);
+
+		return success;
+	}
+
+	finishDrag(piece: RenderPiece) {
+		const req = JSON.stringify({
+			type: "move",
+			from: piece.position,
+			to: this.hoverSquare,
+		});
+		if (this.doMove(piece.position, this.hoverSquare, this.controller.myTurn)) {
+			connection.ws.send(req);
+		}
 
 		this.removeMoveSpots();
 
@@ -465,6 +499,10 @@ export class Renderer {
 		else
 			this.hoveredPiece = undefined;
 
+		if (this.hoveredPiece?.isWhite !== (this.controller.me === "white")) {
+			this.hoveredPiece = undefined;
+		}
+
 		if (this.hoveredPiece)
 			this.hoveredPiece.obj.scale.setScalar(1.2);
 	}
@@ -472,9 +510,9 @@ export class Renderer {
 	updateDrag() {
 		if (this.draggingPiece) {
 			const [i, j] = this.hoverPoint;
-			this.draggingPiece.obj.position.setX(j);
-			this.draggingPiece.obj.position.setY(4);
-			this.draggingPiece.obj.position.setZ(i);
+			this.draggingPiece.targetPosition.setX(j);
+			this.draggingPiece.targetPosition.setY(4);
+			this.draggingPiece.targetPosition.setZ(i);
 		}
 	}
 
@@ -495,6 +533,10 @@ export class Renderer {
 
 		this.updateHover();
 		this.updateDrag();
+
+		for (const piece of this.pieces) {
+			piece.obj.position.lerp(piece.targetPosition, 0.3);
+		}
 
 		const ZOOM = 15;
 		this.camera.position.set(
