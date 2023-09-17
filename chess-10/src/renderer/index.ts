@@ -255,6 +255,9 @@ export class Renderer {
 			if (data.type === "move") {
 				this.doMove(data.from, data.to, true);
 			}
+			else if (data.type === "promote") {
+				this.promote(this.findPiece(data.pos), data.unit, data.unitOnBoard, false);
+			}
 		});
 
 		this.canvas.addEventListener("mousemove", e => {
@@ -380,7 +383,19 @@ export class Renderer {
 		moves.forEach(move => this.showMoveSpot(move.end));
 	}
 
-	promote(piece: RenderPiece, unit: string, unitOnBoard: string) {
+	promote(piece: RenderPiece, unit: string, unitOnBoard: string, send: boolean = true) {
+		if (send) {
+			connection.ws.send(JSON.stringify({
+				type: "promote",
+				pos: piece.position,
+				unit, unitOnBoard,
+			}));
+		}
+		else {
+			// vvvv if you're confused, ask brian what this is vvvv
+			this.controller.myTurn = !this.controller.myTurn;
+		}
+
 		this.setPieceToPromote(undefined);
 		this.scene.remove(piece.obj);
 		const old = piece.obj.position.clone();
@@ -421,7 +436,12 @@ export class Renderer {
 					piece.position = cmd.to;
 				}
 				else if (cmd.type === "promote") {
-					this.setPieceToPromote(piece);
+					if (piece.isWhite === (this.controller.me === "white")) {
+						this.setPieceToPromote(piece);
+					}
+					else {
+						this.controller.myTurn = !this.controller.myTurn;
+					}
 				}
 			});
 			piece.position = move.end;
