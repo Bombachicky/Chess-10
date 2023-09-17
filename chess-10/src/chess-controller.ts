@@ -282,7 +282,7 @@ export class ChessController{
                 point: move.end,
             });
         }
-        // castle
+        // maybe castle
         if(this.getPiece(move.start).toLowerCase() === "k"){
             let piece1: string = "K";
             let piece2: string = "R";
@@ -290,7 +290,9 @@ export class ChessController{
                 piece1 = "k";
                 piece2 = "r";
             }
+            let castled: boolean = false;
             if(move.start[0] === move.end[0] && move.start[1] - move.end[1] === 2){
+                castled = true;
                 if(this.isWhite(move.start))this.canWhiteCastle = false;
                 if(!this.isWhite(move.start))this.canBlackCastle = false;
                 console.log("first one");
@@ -312,6 +314,7 @@ export class ChessController{
                 });
                 
             }else if(move.start[0] === move.end[0] && move.start[1] - move.end[1] === -2){
+                castled = true;
                 if(this.isWhite(move.start))this.canWhiteCastle = false;
                 if(!this.isWhite(move.start))this.canBlackCastle = false;
                 console.log("second one");
@@ -332,8 +335,10 @@ export class ChessController{
                     to: rookPositionTo,
                 });
             }
-            this.lastPath = move.path;
-            return result;
+            if(castled){
+                this.lastPath = move.path;
+                return result;
+            }
         }
         if(this.getPiece(move.start).toLowerCase() === "p"){
             if(move.end[0] === 0 || move.end[0] === 7){
