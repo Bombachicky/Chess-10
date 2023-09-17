@@ -1,6 +1,6 @@
 
 const PieceSelect = () => {
-    const border = "border-solid border-2 border-black z-[2]";
+    const border = "cursor-pointer transition duration-300 ease-in-out border border-black hover:border-red-500 border-4";
     return(
         <>
             <div>
