@@ -71,6 +71,18 @@ export class ChessController{
         result.lastPath = [...this.lastPath];
         return result;
     }
+    hasMovesAvailable(white: boolean) {
+        for(let i = 0;i<8;i++){
+            for(let j = 0;j<8;j++){
+                let checking: Point = [i,j];
+                if(this.isWhite(checking) !== white)continue;
+                let possMoves: Move[] = this.getMoves(checking);
+                if (possMoves.length > 0)
+                    return true;
+            }
+        }
+        return false;
+    }
     getMoves(curr: Point): Move[] {
         console.log(curr);
         this.board.forEach(row => console.log(...row));

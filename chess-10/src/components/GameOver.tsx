@@ -35,6 +35,12 @@ const GameOverContainer = styled.div`
   }
 `;
 
+let gameOverState: "stalemate" | "you-won" | "you-lost" = "stalemate";
+
+export function setGameOverState(state: "stalemate" | "you-won" | "you-lost") {
+  gameOverState = state;
+}
+
 const GameOver = () => {
     const history = useHistory();
 
@@ -51,7 +57,11 @@ const GameOver = () => {
       <GameOverContainer>
         
         <div className = "flex flex-col gap-y-6">
-        <h1>Game Over</h1>
+        <h1>{
+          gameOverState === "stalemate" ? "You stalemated"
+          : gameOverState === "you-won" ? "You won"
+          : "You lost"
+        }</h1>
             <span className="hover:cursor-pointer" onClick={navigateToMainMenu}>Back to Main Menu</span>
             <span className="hover:cursor-pointer" onClick={navigateToLobby}>Back to Lobby</span>
         </div>

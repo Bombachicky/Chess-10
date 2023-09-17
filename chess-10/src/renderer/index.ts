@@ -3,6 +3,8 @@ import { loadAudioBuffer, loadOBJ } from "./assets";
 import { ChessController, Point } from "../chess-controller";
 import PieceSelect  from "../components/PieceSelect";
 import { connection, setDataCallback } from "../connection";
+import { history } from "../components/Username";
+import { setGameOverState } from "../components/GameOver";
 
 const SQUARE_SIZE = 5.64633;
 const BOARD_SIZE = 8;
@@ -405,6 +407,28 @@ export class Renderer {
 		this.controller.board[piece.position[0]][piece.position[1]] = piece.mtl === "white.mtl" // bruh
 			? unitOnBoard.toLowerCase()
 			: unitOnBoard.toUpperCase();
+		this.checkGameOver();
+	}
+
+	checkGameOver() {
+		const currentTurn = this.controller.me === "white"
+			? this.controller.myTurn
+			: !this.controller.myTurn;
+		if (
+			!this.controller.hasMovesAvailable(currentTurn)
+		) {
+			if (this.controller.inCheck(this.controller.me === "white")) {
+				setGameOverState("you-lost");
+			}
+			else if (this.controller.inCheck(this.controller.me !== "white")) {
+				setGameOverState("you-won");
+			}
+			else {
+				setGameOverState("stalemate");
+			}
+
+			history.push("/game-over");
+		}
 	}
 
 	doMove(from: Point, to: Point | undefined, legal: boolean): boolean {
@@ -448,6 +472,8 @@ export class Renderer {
 			success = true;
 			this.controller.myTurn = !this.controller.myTurn;
 		}
+
+		this.checkGameOver();
 
 		const [i, j] = piece.position;
 		const offset = -SQUARE_SIZE / 2 * (BOARD_SIZE - 1);
