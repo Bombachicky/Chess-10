@@ -363,7 +363,7 @@ export class Renderer {
 	finishDrag(piece: RenderPiece) {
 		console.log("piece.position", piece.position);
 		const moves = this.controller.getMoves(piece.position);
-		const move = moves.find(move => move.end[0] === this.hoverSquare[0] && move.end[1] === this.hoverSquare[1]);
+		const move = this.hoverSquare === undefined ? undefined : moves.find(move => move.end[0] === this.hoverSquare[0] && move.end[1] === this.hoverSquare[1]);
 
 		if (move) {
 			const commands = this.controller.executeMove(move);

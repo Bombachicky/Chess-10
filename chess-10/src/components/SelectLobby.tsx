@@ -98,6 +98,26 @@ const Body = styled.div` // changed from styled.body
   animation: ${slideDown} 1s ease-in-out;
 `;
 
+const GridContainer = styled.div`
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 128px;
+`;
+
+const LobbyCard: React.FC = () => {
+  return (
+    <Body>
+      <Figure>
+        <Div>
+          <Span type="first">Username</Span>
+          <Span type="second">Join Games</Span>
+        </Div>
+      </Figure>
+    </Body>
+  );
+};
+
 const SelectLobby = () => {
 
   const history = useHistory();
@@ -111,14 +131,9 @@ const SelectLobby = () => {
       <TitleHeader>
         <h1>Select Lobby</h1>
       </TitleHeader>
-      <Body>
-        <Figure>
-          <Div>
-            <Span type="first">Username</Span>
-            <Span type="second">Join Games</Span>
-          </Div>
-        </Figure>
-      </Body>
+      <GridContainer>
+        
+      </GridContainer>
 
       <Button onClick={goBackToMainMenu}>Back to Menu</Button>
       {/* <BackButton onClick={goBackToMainMenu}>Back to Menu</BackButton>  Back button */}
