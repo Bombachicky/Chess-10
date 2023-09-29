@@ -28,9 +28,11 @@ export class GameServer {
 				ws.close();
 			}
 
+			let aliveInterval: NodeJS.Timeout;
 			ws.on("close", () => {
 				this.wss.close();
 				deleteRoom(this);
+				clearInterval(aliveInterval);
 			});
 
 			ws.on("message", e => {
@@ -47,6 +49,20 @@ export class GameServer {
 					console.error("Error while processing client input:");
 					console.error(e);
 				}
+			});
+
+			let lastPongTime = performance.now() / 1000;
+			aliveInterval = setInterval(() => {
+				if (performance.now() / 1000 - lastPongTime >= 10) {
+					ws.close();
+				}
+				else {
+					ws.ping();
+				}
+			}, 500);
+
+			ws.on("pong", data => {
+				lastPongTime = performance.now() / 1000;
 			});
 		});
 	}
